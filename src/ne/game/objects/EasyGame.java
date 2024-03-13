@@ -2,6 +2,7 @@ package ne.game.objects;
 import org.newdawn.slick.*;
 import org.newdawn.slick.tests.SoundTest;
 
+import javax.swing.*;
 import java.util.ArrayList;
 
 public class EasyGame extends BasicGame {
@@ -11,6 +12,12 @@ public class EasyGame extends BasicGame {
     private Image background;
 
     private Crusher crusher;
+    private Sound sound;
+    private Music music;
+    private int lautstärke = 0;
+    private int hit = 0;
+    private int miss = 0;
+    private AngelCodeFont font;
 
     public EasyGame() {
         super("EasyGame");
@@ -18,7 +25,7 @@ public class EasyGame extends BasicGame {
 
     public static void main(String[] args) throws SlickException {
         AppGameContainer container = new AppGameContainer(new EasyGame());
-        container.setDisplayMode(1024, 768, false);
+        container.setDisplayMode(1280, 720, false);
         //container.setClearEachFrame(false);
         container.setMinimumLogicUpdateInterval(25);
         container.setTargetFrameRate(144);
@@ -28,12 +35,17 @@ public class EasyGame extends BasicGame {
 
     @Override
     public void init(GameContainer container) throws SlickException {
+        font = new AngelCodeFont("testdata/demo2.fnt","testdata/demo2_00.tga");
         background = new Image("assets/pics/background.png");
         mUfoList = new ArrayList<MeinUfo>();
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 1; i <= 1000; i++) {
             mUfoList.add(new MeinUfo(100, 100, new Image("assets/pics/meinufo.png")));
-        }
+                    }
         crusher = new Crusher(512,700,new Image("assets/pics/crusher.png"),container.getInput());
+        music = new Music("testdata/testloop.ogg");
+        sound = new Sound("testdata/burp.aif");
+        music.loop();
+
     }
 
     @Override
@@ -43,9 +55,26 @@ public class EasyGame extends BasicGame {
         if (input.isKeyPressed(Input.KEY_ESCAPE)) {
             container.exit();
         }
+        if (input.isKeyPressed(Input.KEY_UP)){
+            lautstärke = lautstärke +1;
+            if (lautstärke >=10) lautstärke = 10;
+            music.setVolume(lautstärke/10f);
+        }
+        if (input.isKeyPressed(Input.KEY_DOWN)) {
+            lautstärke = lautstärke - 1;
+            if (lautstärke < 1) lautstärke = 0;
+            music.setVolume(lautstärke / 10f);
+        }
+
         for (MeinUfo u : mUfoList) {
             if (crusher.intersects(u.getShape())) {
                 System.out.println("collide");
+                sound.play();
+                u.setRandomPosition();
+                hit++;
+            }
+            if (u.getY() > 768) {
+                miss++;
                 u.setRandomPosition();
             }
             u.update(delta);
@@ -60,7 +89,10 @@ public class EasyGame extends BasicGame {
             u.draw(g);
         }
         crusher.draw(g);
+        font.drawString(8, 25, "Hit "+hit, Color.black);
+        font.drawString(7, 50, "Miss "+miss, Color.red);
     }
 }
+
 
 
